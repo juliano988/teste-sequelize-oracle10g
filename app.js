@@ -7,15 +7,39 @@ const dbConfig = {
   connectString: `${process.env.DB_HOST || 'localhost'}:${process.env.DB_PORT || 1521}/${process.env.DB_SID || 'xe'}`
 };
 
+async function verificarOracleClient() {
+  try {
+    console.log('🔍 Verificando Oracle Client...');
+    console.log('ORACLE_HOME:', process.env.ORACLE_HOME);
+    console.log('LD_LIBRARY_PATH:', process.env.LD_LIBRARY_PATH);
+    
+    // Verificar se conseguimos inicializar o oracledb
+    const clientVersion = oracledb.oracleClientVersionString;
+    console.log('✅ Oracle Client Version:', clientVersion);
+    return true;
+  } catch (error) {
+    console.error('❌ Erro ao verificar Oracle Client:', error.message);
+    return false;
+  }
+}
+
 async function iniciarAplicacao() {
   let connection;
 
   try {
     console.log('Iniciando aplicação Node.js...');
+    
+    // Verificar Oracle Client antes de tentar conectar
+    const clientOk = await verificarOracleClient();
+    if (!clientOk) {
+      console.error('❌ Oracle Client não configurado corretamente');
+      process.exit(1);
+    }
+    
     console.log('Tentando conectar ao Oracle Database...');
     
     // Aguardar um pouco para o banco estar pronto
-    await new Promise(resolve => setTimeout(resolve, 10000));
+    await new Promise(resolve => setTimeout(resolve, 15000));
     
     // Conectar ao banco
     connection = await oracledb.getConnection(dbConfig);
@@ -43,6 +67,7 @@ async function iniciarAplicacao() {
 
   } catch (error) {
     console.error('❌ Erro ao conectar ao banco:', error.message);
+    console.error('Stack trace:', error.stack);
     process.exit(1);
   }
 }
