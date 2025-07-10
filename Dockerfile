@@ -47,4 +47,4 @@ RUN npm run build
 EXPOSE 3000
 
 # Comando para iniciar a aplicação
-CMD ["npm", "start"]
+CMD ["npm", "run", "start:prod"]
