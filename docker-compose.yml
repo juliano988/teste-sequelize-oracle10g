@@ -24,6 +24,9 @@ services:
       - DB_PASSWORD=oracle
       - DB_SID=xe
       - ORACLE_COMPATIBILITY=10g
+    volumes:
+      - .:/app
+      - /app/node_modules
     depends_on:
       - oracle10g
     networks:
