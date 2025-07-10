@@ -23,6 +23,7 @@ services:
       - DB_USER=system
       - DB_PASSWORD=oracle
       - DB_SID=xe
+      - ORACLE_COMPATIBILITY=10g
     depends_on:
       - oracle10g
     networks:

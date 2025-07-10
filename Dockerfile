@@ -12,7 +12,7 @@ RUN apt-get update && apt-get install -y \
 RUN mkdir -p /opt/oracle
 WORKDIR /opt/oracle
 
-# Baixar Oracle Instant Client Basic e SDK
+# Baixar Oracle Instant Client Basic
 RUN wget https://download.oracle.com/otn_software/linux/instantclient/1912000/instantclient-basic-linux.x64-19.12.0.0.0dbru.zip \
     && unzip instantclient-basic-linux.x64-19.12.0.0.0dbru.zip \
     && rm instantclient-basic-linux.x64-19.12.0.0.0dbru.zip
@@ -32,12 +32,16 @@ WORKDIR /app
 
 # Copiar arquivos de dependências
 COPY package*.json ./
+COPY tsconfig.json ./
 
 # Instalar dependências
 RUN npm install
 
 # Copiar código da aplicação
-COPY . .
+COPY src/ ./src/
+
+# Compilar TypeScript
+RUN npm run build
 
 # Expor porta
 EXPOSE 3000

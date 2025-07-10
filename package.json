@@ -1,14 +1,23 @@
 {
   "name": "nodejs-oracle10g-app",
   "version": "1.0.0",
-  "description": "Aplicação Node.js para conexão com Oracle 10g",
-  "main": "app.js",
+  "description": "Aplicação Node.js para conexão com Oracle 10g usando TypeORM",
+  "main": "dist/app.js",
   "scripts": {
-    "start": "node app.js",
-    "dev": "node app.js"
+    "build": "tsc",
+    "start": "npm run build && node dist/app.js",
+    "dev": "ts-node src/app.ts"
   },
   "dependencies": {
-    "oracledb": "^4.0.0"
+    "oracledb": "^6.2.0",
+    "reflect-metadata": "^0.1.13",
+    "typeorm": "^0.3.17"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "@types/oracledb": "^6.6.1",
+    "ts-node": "^10.9.0",
+    "typescript": "^5.0.0"
   },
   "engines": {
     "node": ">=18.0.0"
