@@ -43,6 +43,23 @@ export class UsuarioController {
     }
   }
 
+  @Get('ping')
+  async verificarConexao() {
+    try {
+      const conexao = await this.usuarioService.verificarConexao();
+      return {
+        success: conexao.conectado,
+        data: conexao.detalhes,
+        error: conexao.erro
+      };
+    } catch (error: any) {
+      return {
+        success: false,
+        error: error.message
+      };
+    }
+  }
+
   @Get(':email')
   async findByEmail(@Param('email') email: string) {
     try {

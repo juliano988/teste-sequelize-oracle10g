@@ -12,8 +12,9 @@ export class UsuarioService implements OnModuleInit {
 
   async onModuleInit() {
     // Criar estrutura do banco quando o módulo inicializar
-    await this.criarEstruturaBanco();
-    await this.inserirDadosExemplo();
+    await this.verificarConexao();
+    // await this.criarEstruturaBanco();
+    // await this.inserirDadosExemplo();
   }
 
   private async criarEstruturaBanco(): Promise<void> {
@@ -26,18 +27,19 @@ export class UsuarioService implements OnModuleInit {
         NOCACHE
         NOCYCLE
       `;
-      
+
       try {
         await this.dataSource.query(createSequenceSQL);
         console.log('✅ Sequência "usuarios_seq" criada com sucesso');
       } catch (error: any) {
-        if (error.code === 955) { // Sequência já existe
+        if (error.code === 955) {
+          // Sequência já existe
           console.log('ℹ️ Sequência "usuarios_seq" já existe');
         } else {
           console.error('❌ Erro ao criar sequência:', error.message);
         }
       }
-      
+
       // Criar tabela
       const createTableSQL = `
         CREATE TABLE usuarios (
@@ -47,12 +49,13 @@ export class UsuarioService implements OnModuleInit {
           data_criacao DATE DEFAULT SYSDATE
         )
       `;
-      
+
       try {
         await this.dataSource.query(createTableSQL);
         console.log('✅ Tabela "usuarios" criada com sucesso');
       } catch (error: any) {
-        if (error.code === 955) { // Tabela já existe
+        if (error.code === 955) {
+          // Tabela já existe
           console.log('ℹ️ Tabela "usuarios" já existe');
         } else {
           console.error('❌ Erro ao criar tabela:', error.message);
@@ -68,7 +71,7 @@ export class UsuarioService implements OnModuleInit {
       const usuariosExemplo = [
         { nome: 'João Silva', email: 'joao@example.com' },
         { nome: 'Maria Santos', email: 'maria@example.com' },
-        { nome: 'Pedro Oliveira', email: 'pedro@example.com' }
+        { nome: 'Pedro Oliveira', email: 'pedro@example.com' },
       ];
 
       for (const dadosUsuario of usuariosExemplo) {
@@ -76,7 +79,7 @@ export class UsuarioService implements OnModuleInit {
           // Verificar se usuário já existe usando query raw para Oracle 10g
           const existeResult = await this.dataSource.query(
             'SELECT COUNT(*) as count FROM usuarios WHERE email = :1',
-            [dadosUsuario.email]
+            [dadosUsuario.email],
           );
 
           const usuarioExiste = existeResult[0].COUNT > 0;
@@ -85,14 +88,19 @@ export class UsuarioService implements OnModuleInit {
             // Inserir usando query raw com placeholders Oracle
             await this.dataSource.query(
               'INSERT INTO usuarios (id, nome, email) VALUES (usuarios_seq.NEXTVAL, :1, :2)',
-              [dadosUsuario.nome, dadosUsuario.email]
+              [dadosUsuario.nome, dadosUsuario.email],
             );
-            console.log(`✅ Usuário "${dadosUsuario.nome}" inserido com sucesso`);
+            console.log(
+              `✅ Usuário "${dadosUsuario.nome}" inserido com sucesso`,
+            );
           } else {
             console.log(`ℹ️ Usuário "${dadosUsuario.nome}" já existe`);
           }
         } catch (error: any) {
-          console.error(`❌ Erro ao inserir usuário "${dadosUsuario.nome}":`, error.message);
+          console.error(
+            `❌ Erro ao inserir usuário "${dadosUsuario.nome}":`,
+            error.message,
+          );
         }
       }
     } catch (error: any) {
@@ -104,14 +112,14 @@ export class UsuarioService implements OnModuleInit {
     try {
       // Usar query raw para Oracle 10g em vez do repository
       const usuarios = await this.dataSource.query(
-        'SELECT id, nome, email, data_criacao FROM usuarios ORDER BY id'
+        'SELECT id, nome, email, data_criacao FROM usuarios ORDER BY id',
       );
-      
+
       return usuarios.map((usuario: any) => ({
         id: usuario.ID,
         nome: usuario.NOME,
         email: usuario.EMAIL,
-        dataCriacao: usuario.DATA_CRIACAO
+        dataCriacao: usuario.DATA_CRIACAO,
       }));
     } catch (error: any) {
       console.error('❌ Erro ao consultar dados:', error.message);
@@ -123,19 +131,19 @@ export class UsuarioService implements OnModuleInit {
     try {
       const resultado = await this.dataSource.query(
         'SELECT id, nome, email, data_criacao FROM usuarios WHERE email = :1',
-        [email]
+        [email],
       );
-      
+
       if (resultado.length > 0) {
         const usuario = resultado[0];
         return {
           id: usuario.ID,
           nome: usuario.NOME,
           email: usuario.EMAIL,
-          dataCriacao: usuario.DATA_CRIACAO
+          dataCriacao: usuario.DATA_CRIACAO,
         };
       }
-      
+
       return null;
     } catch (error: any) {
       console.error('❌ Erro ao buscar usuário por email:', error.message);
@@ -147,7 +155,7 @@ export class UsuarioService implements OnModuleInit {
     try {
       // Verificar se usuário já existe
       const usuarioExistente = await this.findByEmail(dadosUsuario.email);
-      
+
       if (usuarioExistente) {
         throw new Error('Usuário já existe com este email');
       }
@@ -155,7 +163,7 @@ export class UsuarioService implements OnModuleInit {
       // Inserir novo usuário
       await this.dataSource.query(
         'INSERT INTO usuarios (id, nome, email) VALUES (usuarios_seq.NEXTVAL, :1, :2)',
-        [dadosUsuario.nome, dadosUsuario.email]
+        [dadosUsuario.nome, dadosUsuario.email],
       );
 
       // Retornar o usuário criado
@@ -170,18 +178,50 @@ export class UsuarioService implements OnModuleInit {
     try {
       // Testar conexão com query raw
       const result = await this.dataSource.query('SELECT SYSDATE FROM DUAL');
-      const totalUsuarios = await this.dataSource.query('SELECT COUNT(*) as total FROM usuarios');
-      
+      const totalUsuarios = await this.dataSource.query(
+        'SELECT COUNT(*) as total FROM usuarios',
+      );
+
       return {
         status: 'OK',
         dataAtual: result[0].SYSDATE,
         totalUsuarios: totalUsuarios[0].TOTAL,
         conexao: 'TypeORM + Oracle 10g',
-        modo: 'Thick Mode'
+        modo: 'Thick Mode',
       };
     } catch (error: any) {
       console.error('❌ Erro ao obter status:', error.message);
       throw error;
+    }
+  }
+
+  async verificarConexao(): Promise<{
+    conectado: boolean;
+    detalhes?: any;
+    erro?: string;
+  }> {
+    try {
+      // Query simples que não altera dados - apenas verifica conexão
+      const resultado = await this.dataSource.query('SELECT 1 FROM DUAL');
+
+      console.log('Conexão com o banco bem sucedida');
+
+      return {
+        conectado: true,
+        detalhes: {
+          resultado: resultado[0],
+          timestamp: new Date().toISOString(),
+          banco: 'Oracle 10g',
+          status: 'Conexão ativa',
+        },
+      };
+    } catch (error: any) {
+      console.error('❌ Erro ao verificar conexão:', error.message);
+
+      return {
+        conectado: false,
+        erro: error.message,
+      };
     }
   }
 }
