@@ -1,7 +1,7 @@
-FROM node:18-slim
+FROM node:lts-slim
 
 # Instalar dependências do sistema
-RUN apt-get update && apt-get install -y \
+RUN apt update && apt install -y \
     wget \
     unzip \
     libaio1 \
