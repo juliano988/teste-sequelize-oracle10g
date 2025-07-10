@@ -1,0 +1,37 @@
+services:
+  oracle10g:
+    image: jaanonim/docker-oracle-xe-10g
+    container_name: oracle10g
+    ports:
+      - "8080:8080"
+      - "1521:1521"
+    volumes:
+      - oracle_xe_10g_vol:/usr/lib/oracle
+    restart: always
+    networks:
+      - oracle-network
+
+  nodejs-app:
+    build: .
+    container_name: nodejs-oracle-app
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=development
+      - DB_HOST=oracle10g
+      - DB_PORT=1521
+      - DB_USER=system
+      - DB_PASSWORD=oracle
+      - DB_SID=xe
+    depends_on:
+      - oracle10g
+    networks:
+      - oracle-network
+    restart: unless-stopped
+
+volumes:
+  oracle_xe_10g_vol:
+
+networks:
+  oracle-network:
+    driver: bridge
